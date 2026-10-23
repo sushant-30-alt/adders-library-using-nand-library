@@ -1,128 +1,177 @@
-# Adders Library Using NAND-Based Logic Gates
+# Adders Library — NAND-Based Digital Design in Verilog
 
 ## Overview
 
-This repository contains the **Half Adder (HA)** and **Full Adder (FA)** implemented in Verilog HDL using a custom NAND-based logic gate library. The designs are simulated and synthesized using Xilinx Vivado.
+This repository presents a modular digital design library developed using **Verilog HDL and Xilinx Vivado 2025.2**. It demonstrates hierarchical RTL design by constructing arithmetic circuits using reusable logic modules and evaluating their implementation through simulation and FPGA synthesis.
 
-The project demonstrates hierarchical digital design by constructing arithmetic circuits from reusable logic gate modules.
+The library includes a Half Adder, Full Adder, 4-bit Ripple Carry Adder (RCA), 4-bit Carry Lookahead Adder (CLA), and a 4-bit Subtractor with an 8-bit signed output.
+
+The designs emphasize reusable RTL, exhaustive functional verification, synthesized logic analysis, and a comparison of ripple-carry and carry-lookahead architectures.
 
 ## Objectives
 
-- Design a Half Adder using custom XOR and AND gate modules.
-- Design a Full Adder using two Half Adders and an OR gate.
-- Reuse a custom NAND-based logic gate library.
-- Verify functionality through Verilog testbenches and simulation.
-- Examine synthesized logic and LUT INIT values in Vivado.
+- Develop reusable NAND-based digital logic modules.
+- Implement Half Adder and Full Adder circuits using hierarchical RTL.
+- Design and verify a 4-bit Ripple Carry Adder.
+- Implement a 4-bit Carry Lookahead Adder using generate and propagate logic.
+- Design a 4-bit subtractor with an 8-bit signed two's-complement output.
+- Verify functionality using self-checking Verilog testbenches.
+- Examine synthesized schematics, LUT INIT values, and timing results in Vivado.
+- Compare RCA and CLA architectures using recorded synthesis results.
 
 ## Repository Structure
 
 ```text
-adders-library-using-nand-library/
+adders-library/
 ├── rtl/
-│   ├── nand_gate.v
-│   ├── not_gate.v
-│   ├── and_gate.v
-│   ├── or_gate.v
-│   ├── xor_gate.v
 │   ├── half_adder.v
-│   └── full_adder.v
+│   ├── full_adder.v
+│   ├── ripple_carry_adder_4bit.v
+│   ├── carry_lookahead_adder_4bit.v
+│   └── subtractor_4bit.v
 ├── tb/
 │   ├── tb_half_adder.v
-│   └── tb_full_adder.v
-└── reports/
-    └── HALF ADDER USING NAND library.docx
+│   ├── tb_full_adder.v
+│   ├── tb_ripple_carry_adder_4bit.v
+│   ├── tb_carry_lookahead_adder_4bit.v
+│   └── tb_subtractor_4bit.v
+├── reports/
+│   └── ADDER USING NAND library.docx
+└── README.md
 ```
 
-## 1. Half Adder
+*Note: The repository structure shown above should match the actual committed filenames and directories.*
 
-A Half Adder adds two single-bit binary inputs, `A` and `B`, and produces a Sum (`S`) and Carry (`C`).
+## Implemented Designs
 
-### Boolean Equations
+### 1. Half Adder
 
-- **Sum:** `S = A XOR B`
-- **Carry:** `C = A AND B`
+A Half Adder adds two single-bit inputs, `A` and `B`, producing a Sum (`S`) and Carry (`C`).
 
-### Truth Table
+**Boolean equations**
 
-| A | B | Sum (S) | Carry (C) |
-|---|---|---------|-----------|
-| 0 | 0 | 0 | 0 |
-| 0 | 1 | 1 | 0 |
-| 1 | 0 | 1 | 0 |
-| 1 | 1 | 0 | 1 |
+- Sum: `S = A XOR B`
+- Carry: `C = A AND B`
 
-## 2. Full Adder
+The implementation uses custom XOR and AND gate modules constructed from the NAND-based logic library.
+
+### 2. Full Adder
 
 A Full Adder adds three single-bit inputs: `A`, `B`, and carry-in (`Cin`). It produces Sum (`S`) and carry-out (`Cout`).
 
-### Boolean Equations
+**Boolean equations**
 
-- **Sum:** `S = A XOR B XOR Cin`
-- **Carry-out:** `Cout = (A AND B) OR (Cin AND (A XOR B))`
+- Sum: `S = A XOR B XOR Cin`
+- Carry-out: `Cout = (A AND B) OR (Cin AND (A XOR B))`
 
-### Truth Table
+The design uses two Half Adder instances and an OR gate.
 
-| A | B | Cin | Sum (S) | Carry-out (Cout) |
-|---|---|-----|---------|------------------|
-| 0 | 0 | 0 | 0 | 0 |
-| 0 | 0 | 1 | 1 | 0 |
-| 0 | 1 | 0 | 1 | 0 |
-| 0 | 1 | 1 | 0 | 1 |
-| 1 | 0 | 0 | 1 | 0 |
-| 1 | 0 | 1 | 0 | 1 |
-| 1 | 1 | 0 | 0 | 1 |
-| 1 | 1 | 1 | 1 | 1 |
+### 3. 4-Bit Ripple Carry Adder (RCA)
 
-## Design Hierarchy
+The RCA adds two 4-bit binary operands, `A` and `B`, with an input carry (`Cin`). It produces a 4-bit Sum and a final carry-out (`Cout`), representing a 5-bit arithmetic result.
 
-- The NAND gate is the fundamental building block of the custom logic library.
-- Other logic gates are constructed from NAND-based logic.
-- The Half Adder uses the XOR and AND modules.
-- The Full Adder uses two Half Adder instances and an OR gate.
+Each stage passes its carry to the next stage.
 
-## Verification and Synthesis
+For each bit \(i\):
 
-Both designs were verified using Verilog testbenches in Xilinx Vivado.
+- Propagate: `P[i] = A[i] XOR B[i]`
+- Generate: `G[i] = A[i] AND B[i]`
+- Sum: `Sum[i] = P[i] XOR C[i]`
+- Carry: `C[i+1] = G[i] OR (P[i] AND C[i])`
 
-- Half Adder: all 4 input combinations tested.
-- Full Adder: all 8 input combinations tested.
+The architecture is simple and modular, but its carry propagation delay can increase with the number of bits.
 
-Recorded synthesized LUT INIT values:
+### 4. 4-Bit Carry Lookahead Adder (CLA)
 
-| Design | Output | LUT INIT |
-|---|---|---|
-| Half Adder | Sum (`S`) | `4'h6` |
-| Half Adder | Carry (`C`) | `4'h8` |
-| Full Adder | Sum (`S`) | `8'h96` |
-| Full Adder | Carry-out (`Cout`) | `8'hE8` |
+The CLA computes carry signals using expanded generate and propagate equations rather than relying exclusively on sequential carry propagation.
 
-These values are from the recorded Vivado synthesis results for this project.
+For this implementation:
+
+- Generate: `G[i] = A[i] AND B[i]`
+- Propagate: `P[i] = A[i] OR B[i]`
+
+The expanded carry equations calculate the carry signals in advance, and the sum is obtained using the corresponding carry-in for each bit.
+
+The CLA and RCA are compared using their recorded functional verification and synthesis results.
+
+### 5. 4-Bit Subtractor with 8-Bit Signed Output
+
+The subtractor computes the difference between two unsigned 4-bit inputs and represents the result using an 8-bit two's-complement value.
+
+Subtraction is based on:
+
+`A - B = A + (~B) + 1`
+
+The implementation reuses the 4-bit Ripple Carry Adder. It handles negative differences by calculating the magnitude and representing the negative result in two's-complement notation.
+
+The supported difference range is −15 to +15.
+
+## Functional Verification
+
+The accompanying report records the following self-checking simulation results in Xilinx Vivado.
+
+| Design | Test cases | Recorded result |
+|---|---:|---|
+| Half Adder | 4 input combinations | Verified |
+| Full Adder | 8 input combinations | Verified |
+| 4-bit RCA | 512 | 512/512 passed |
+| 4-bit CLA | 512 | 512/512 passed |
+| 4-bit Subtractor | 256 | 256/256 passed |
+
+The RCA and CLA testbenches cover all combinations of the two 4-bit operands and the input carry. The subtractor testbench covers all pairs of 4-bit input operands.
+
+## RCA vs CLA: Recorded Synthesis Comparison
+
+The report documents synthesis results for the Spartan-7 target `xc7s50csga324-1`.
+
+| Parameter | Ripple Carry Adder | Carry Lookahead Adder |
+|---|---:|---:|
+| Functional test cases passed | 512/512 | 512/512 |
+| LUT cells | 6 | 6 |
+| Total cells | 20 | 20 |
+| Reported worst-path delay | 5.814 ns | 5.814 ns |
+
+In the recorded synthesis run, both architectures produced the same reported LUT count, total cell count, and worst-path delay. The report notes that timing constraints were not specified, so these results do not establish a universal performance equivalence between RCA and CLA architectures.
+
+## LUT INIT Analysis
+
+The report includes recorded LUT INIT values extracted from the Vivado Tcl Console for the Half Adder, Full Adder, RCA, CLA, and Subtractor.
+
+These values describe the truth-table configurations of the mapped LUTs for the recorded synthesis run. They may vary with the target FPGA, synthesis settings, RTL structure, and LUT input mapping.
 
 ## Tools Used
 
 - Verilog HDL
-- Xilinx Vivado
-- RTL simulation and synthesis
+- Xilinx Vivado 2025.2
+- RTL behavioral simulation
+- Self-checking testbenches
+- FPGA synthesis and schematic inspection
+- LUT INIT analysis
 
 ## Project Report
 
-The combined Half Adder and Full Adder report is available in the [`reports/`](reports/) directory. It documents the design equations, simulation results, waveforms, synthesized schematics, and LUT INIT values.
+The detailed report is available in the `reports/` directory:
+
+**`ADDER USING NAND library.docx`**
+
+It documents the objectives, theory, Boolean equations, truth tables, simulation waveforms, synthesized schematics, LUT INIT values, verification results, and RCA-versus-CLA comparison.
 
 ## Related Repository
 
 **NAND-Based Logic Gates Library:**  
 https://github.com/sushant-30-alt/nand-based-logic-gates
 
-This repository provides the custom logic gate library reused in the adder designs.
+This library provides the custom NAND-based gate modules reused in the arithmetic designs.
 
 ## Future Work
 
-- Implement a Ripple Carry Adder.
-- Extend the library to larger arithmetic circuits.
-- Reuse the adder modules in binary multiplier designs.
+- Extend the library to wider arithmetic circuits.
+- Compare additional adder architectures and FPGA implementations.
+- Evaluate timing under explicitly defined synthesis and timing constraints.
+- Reuse the arithmetic modules in multiplier and calculator designs.
 
 ## Author
 
 Sushant
 
-*Educational digital design project focused on modular RTL development, simulation, and FPGA synthesis.*
+*An educational digital design project focused on modular RTL development, arithmetic circuits, functional verification, and FPGA synthesis.*
